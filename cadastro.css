@@ -1,0 +1,177 @@
+/* Estilos específicos para a página de Cadastro */
+
+/* Importa os estilos base */
+@import url('styles.css');
+
+/* Personalizações específicas para cadastro */
+.login-card {
+    /* Card um pouco maior para acomodar mais campos */
+    max-width: 450px;
+    padding: 45px;
+}
+
+/* Animação específica para o formulário de cadastro */
+.login-form {
+    animation: slideInFromRight 0.8s ease-out;
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Estilo específico para o botão de cadastro */
+.btn-primary {
+    background: linear-gradient(135deg, #FF8F00 0%, #FFB74D 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #E65100 0%, #FF8F00 100%);
+    box-shadow: 0 4px 12px rgba(255, 143, 0, 0.3);
+}
+
+/* Efeito de ripple no botão de cadastro */
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Estilo para campos de cadastro */
+.cadastro-form input {
+    transition: all 0.3s ease;
+}
+
+.cadastro-form input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 143, 0, 0.15);
+}
+
+/* Estilo específico para o campo de confirmação de senha */
+#confirmPassword {
+    border-left: 4px solid #FF8F00;
+}
+
+#confirmPassword:focus {
+    border-left-color: #E65100;
+}
+
+/* Mensagem de boas-vindas específica para cadastro */
+.welcome-message {
+    background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+    border: 1px solid #FFCC02;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #E65100;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Estilo para o link de login */
+.form-footer .link {
+    position: relative;
+    display: inline-block;
+}
+
+.form-footer .link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background: #2E7D32;
+    transition: width 0.3s ease;
+}
+
+.form-footer .link:hover::after {
+    width: 100%;
+}
+
+/* Estilo para indicador de força da senha */
+.password-strength {
+    margin-top: 5px;
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.password-strength-bar {
+    height: 100%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    width: 0;
+}
+
+.password-strength.weak .password-strength-bar {
+    width: 25%;
+    background: #f44336;
+}
+
+.password-strength.medium .password-strength-bar {
+    width: 50%;
+    background: #ff9800;
+}
+
+.password-strength.strong .password-strength-bar {
+    width: 75%;
+    background: #4caf50;
+}
+
+.password-strength.very-strong .password-strength-bar {
+    width: 100%;
+    background: #2e7d32;
+}
+
+/* Estilo para mensagem de força da senha */
+.password-strength-text {
+    font-size: 0.8rem;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+.password-strength.weak .password-strength-text {
+    color: #f44336;
+}
+
+.password-strength.medium .password-strength-text {
+    color: #ff9800;
+}
+
+.password-strength.strong .password-strength-text {
+    color: #4caf50;
+}
+
+.password-strength.very-strong .password-strength-text {
+    color: #2e7d32;
+}
+
+/* Responsividade específica para cadastro */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 30px 20px;
+        max-width: 100%;
+    }
+}
