@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Adiciona scroll suave a todos os links de navegação
+    // Adiciona scroll suave apenas a links âncora
     navLinks.forEach(link => {
         link.addEventListener('click', smoothScroll);
     });
@@ -225,6 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initCounters() {
         const statsSection = document.querySelector('.about');
         const statNumbers = document.querySelectorAll('.stat-number');
+        if (!statsSection) return;
         
         if (isElementInViewport(statsSection)) {
             statNumbers.forEach(stat => {
@@ -316,6 +317,9 @@ document.addEventListener('DOMContentLoaded', function() {
      * Atualiza o link ativo na navegação baseado na seção visível
      */
     function updateActiveNavigation() {
+        // Só ativa lógica para navegação por âncoras (home)
+        const hasAnchorLinks = Array.from(navLinks).some(l => (l.getAttribute('href') || '').startsWith('#'));
+        if (!hasAnchorLinks) return;
         const sections = document.querySelectorAll('section[id]');
         const scrollY = window.scrollY + 100;
         
@@ -326,9 +330,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
                 navLinks.forEach(link => {
-                    link.classList.remove('active');
-                    if (link.getAttribute('href') === `#${sectionId}`) {
-                        link.classList.add('active');
+                    if ((link.getAttribute('href') || '').startsWith('#')) {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${sectionId}`) {
+                            link.classList.add('active');
+                        }
                     }
                 });
             }
