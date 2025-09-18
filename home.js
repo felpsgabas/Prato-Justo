@@ -11,6 +11,209 @@ document.addEventListener('DOMContentLoaded', function() {
     const navList = document.querySelector('.nav-list');
     const navLinks = document.querySelectorAll('.nav-link');
     const header = document.querySelector('.header');
+    const screens = document.querySelectorAll('.screen');
+    const navigationButtons = document.querySelectorAll('[data-navigate]');
+    const indicatorDots = document.querySelectorAll('.indicator-dot');
+    
+    // Estado atual da navegação
+    let currentScreen = 'inicio';
+    let isTransitioning = false;
+    
+    // ===== SISTEMA DE NAVEGAÇÃO ENTRE TELAS =====
+    
+    /**
+     * Navega para uma tela específica
+     * @param {string} targetScreen - ID da tela de destino
+     * @param {string} direction - Direção da animação ('next' ou 'prev')
+     */
+    function navigateToScreen(targetScreen, direction = 'next') {
+        if (isTransitioning || targetScreen === currentScreen) return;
+        
+        isTransitioning = true;
+        
+        const currentScreenElement = document.querySelector(`[data-screen="${currentScreen}"]`);
+        const targetScreenElement = document.querySelector(`[data-screen="${targetScreen}"]`);
+        
+        if (!targetScreenElement) {
+            console.error(`Tela "${targetScreen}" não encontrada`);
+            isTransitioning = false;
+            return;
+        }
+        
+        // Prepara a tela de destino
+        targetScreenElement.style.display = 'flex';
+        targetScreenElement.classList.remove('prev', 'next');
+        targetScreenElement.classList.add(direction === 'next' ? 'next' : 'prev');
+        
+        // Força o reflow para garantir que as classes sejam aplicadas
+        targetScreenElement.offsetHeight;
+        
+        // Anima para a tela de destino
+        setTimeout(() => {
+            currentScreenElement.classList.remove('active');
+            currentScreenElement.classList.add(direction === 'next' ? 'prev' : 'next');
+            
+            targetScreenElement.classList.remove('prev', 'next');
+            targetScreenElement.classList.add('active');
+            
+            // Atualiza navegação ativa
+            updateActiveNavigation(targetScreen);
+            
+            // Finaliza a transição
+            setTimeout(() => {
+                currentScreenElement.style.display = 'none';
+                currentScreenElement.classList.remove('prev', 'next');
+                
+                currentScreen = targetScreen;
+                isTransitioning = false;
+                
+                // Executa animações da nova tela
+                initScreenAnimations(targetScreen);
+                
+            }, 500);
+        }, 50);
+    }
+    
+    /**
+     * Atualiza a navegação ativa no header e indicadores
+     * @param {string} activeScreen - ID da tela ativa
+     */
+    function updateActiveNavigation(activeScreen) {
+        // Atualiza navegação do header
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('data-navigate') === activeScreen) {
+                link.classList.add('active');
+            }
+        });
+        
+        // Atualiza indicadores laterais
+        indicatorDots.forEach(dot => {
+            dot.classList.remove('active');
+            if (dot.getAttribute('data-screen') === activeScreen) {
+                dot.classList.add('active');
+            }
+        });
+    }
+    
+    /**
+     * Inicializa animações específicas de cada tela
+     * @param {string} screenId - ID da tela
+     */
+    function initScreenAnimations(screenId) {
+        const screenElement = document.querySelector(`[data-screen="${screenId}"]`);
+        if (!screenElement) return;
+        
+        // Reinicia animações AOS para a tela atual
+        const animatedElements = screenElement.querySelectorAll('[data-aos]');
+        animatedElements.forEach(element => {
+            element.classList.remove('aos-animate');
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                element.classList.add('aos-animate');
+                element.style.opacity = '1';
+                element.style.transform = 'translateY(0)';
+            }, 100);
+        });
+        
+        // Animações específicas por tela
+        switch(screenId) {
+            case 'sobre':
+                // Reinicia contadores da seção sobre
+                initCounters();
+                break;
+            case 'cadastrar-alimentos':
+                // Reinicia status de localização
+                const locationStatus = document.getElementById('locationStatus');
+                if (locationStatus) {
+                    locationStatus.textContent = 'Localização não detectada';
+                    locationStatus.style.color = '#7f8c8d';
+                }
+                break;
+        }
+    }
+    
+    /**
+     * Inicializa o sistema de navegação
+     */
+    function initScreenNavigation() {
+        // Mostra a tela inicial
+        const initialScreen = document.querySelector(`[data-screen="${currentScreen}"]`);
+        if (initialScreen) {
+            initialScreen.style.display = 'flex';
+            initialScreen.classList.add('active');
+        }
+        
+        // Adiciona event listeners para todos os botões de navegação
+        navigationButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetScreen = this.getAttribute('data-navigate');
+                
+                if (targetScreen) {
+                    // Determina a direção baseada na posição atual e destino
+                    const screens = ['inicio', 'como-funciona', 'parceiros', 'cadastrar-alimentos', 'sobre'];
+                    const currentIndex = screens.indexOf(currentScreen);
+                    const targetIndex = screens.indexOf(targetScreen);
+                    
+                    const direction = targetIndex > currentIndex ? 'next' : 'prev';
+                    navigateToScreen(targetScreen, direction);
+                }
+            });
+        });
+        
+        // Adiciona event listeners para os indicadores laterais
+        indicatorDots.forEach(dot => {
+            dot.addEventListener('click', function() {
+                const targetScreen = this.getAttribute('data-screen');
+                
+                if (targetScreen && targetScreen !== currentScreen) {
+                    // Determina a direção baseada na posição atual e destino
+                    const screens = ['inicio', 'como-funciona', 'parceiros', 'cadastrar-alimentos', 'sobre'];
+                    const currentIndex = screens.indexOf(currentScreen);
+                    const targetIndex = screens.indexOf(targetScreen);
+                    
+                    const direction = targetIndex > currentIndex ? 'next' : 'prev';
+                    navigateToScreen(targetScreen, direction);
+                }
+            });
+        });
+        
+        // Suporte a navegação por teclado
+        document.addEventListener('keydown', function(e) {
+            if (isTransitioning) return;
+            
+            const screens = ['inicio', 'como-funciona', 'parceiros', 'cadastrar-alimentos', 'sobre'];
+            const currentIndex = screens.indexOf(currentScreen);
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (currentIndex > 0) {
+                        navigateToScreen(screens[currentIndex - 1], 'prev');
+                    }
+                    break;
+                case 'ArrowRight':
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (currentIndex < screens.length - 1) {
+                        navigateToScreen(screens[currentIndex + 1], 'next');
+                    }
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    navigateToScreen('inicio', 'prev');
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    navigateToScreen('sobre', 'next');
+                    break;
+            }
+        });
+    }
     
     // ===== MENU MOBILE =====
     
@@ -59,82 +262,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // ===== SCROLL SUAVE =====
+    // Links de navegação já são tratados pelo sistema de telas
     
-    /**
-     * Implementa scroll suave para links âncora
-     * @param {Event} e - Evento de clique
-     */
-    function smoothScroll(e) {
-        const targetId = e.target.getAttribute('href');
-        
-        // Verifica se é um link âncora interno
-        if (targetId && targetId.startsWith('#')) {
-            e.preventDefault();
-            const targetElement = document.querySelector(targetId);
-            
-            if (targetElement) {
-                const headerHeight = header.offsetHeight;
-                const targetPosition = targetElement.offsetTop - headerHeight - 20;
-                
-                // Garante que a rolagem seja suave
-                window.scrollTo({
-                    top: Math.max(0, targetPosition),
-                    behavior: 'smooth'
-                });
-                
-                // Fallback para navegadores que não suportam smooth scroll
-                if (!('scrollBehavior' in document.documentElement.style)) {
-                    const startPosition = window.pageYOffset;
-                    const distance = targetPosition - startPosition;
-                    const duration = 800;
-                    let start = null;
-                    
-                    function animation(currentTime) {
-                        if (start === null) start = currentTime;
-                        const timeElapsed = currentTime - start;
-                        const run = ease(timeElapsed, startPosition, distance, duration);
-                        window.scrollTo(0, run);
-                        if (timeElapsed < duration) requestAnimationFrame(animation);
-                    }
-                    
-                    function ease(t, b, c, d) {
-                        t /= d / 2;
-                        if (t < 1) return c / 2 * t * t + b;
-                        t--;
-                        return -c / 2 * (t * (t - 2) - 1) + b;
-                    }
-                    
-                    requestAnimationFrame(animation);
-                }
-            }
-        }
-    }
-    
-    // Adiciona scroll suave a todos os links de navegação
-    navLinks.forEach(link => {
-        link.addEventListener('click', smoothScroll);
-    });
-    
-    // ===== HEADER SCROLL EFFECT =====
-    
-    /**
-     * Adiciona efeito de transparência no header baseado no scroll
-     */
-    function handleHeaderScroll() {
-        const scrollY = window.scrollY;
-        
-        if (scrollY > 100) {
-            header.style.background = 'rgba(255, 255, 255, 0.98)';
-            header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
-        } else {
-            header.style.background = 'rgba(255, 255, 255, 0.95)';
-            header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
-        }
-    }
-    
-    // Event listener para scroll
-    window.addEventListener('scroll', handleHeaderScroll);
+    // Header mantém estilo fixo no sistema de telas
     
     // ===== ANIMAÇÕES DE SCROLL =====
     
@@ -310,64 +440,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializa efeitos dos botões
     initButtonEffects();
     
-    // ===== NAVEGAÇÃO ATIVA =====
+    // Navegação ativa é gerenciada pelo sistema de telas
     
-    /**
-     * Atualiza o link ativo na navegação baseado na seção visível
-     */
-    function updateActiveNavigation() {
-        const sections = document.querySelectorAll('section[id]');
-        const scrollY = window.scrollY + 100;
-        
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.offsetHeight;
-            const sectionId = section.getAttribute('id');
-            
-            if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                    if (link.getAttribute('href') === `#${sectionId}`) {
-                        link.classList.add('active');
-                    }
-                });
-            }
-        });
-    }
-    
-    // Adiciona event listener para navegação ativa
-    window.addEventListener('scroll', updateActiveNavigation);
-    
-    // ===== OTIMIZAÇÕES DE PERFORMANCE =====
-    
-    /**
-     * Throttle function para otimizar eventos de scroll
-     * @param {Function} func - Função a ser executada
-     * @param {number} limit - Limite de tempo em ms
-     * @returns {Function} - Função otimizada
-     */
-    function throttle(func, limit) {
-        let inThrottle;
-        return function() {
-            const args = arguments;
-            const context = this;
-            if (!inThrottle) {
-                func.apply(context, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    }
-    
-    // Aplica throttle aos event listeners de scroll
-    const throttledScrollHandler = throttle(() => {
-        handleHeaderScroll();
-        handleScrollAnimations();
-        updateActiveNavigation();
-        initCounters();
-    }, 16); // ~60fps
-    
-    window.addEventListener('scroll', throttledScrollHandler);
+    // Otimizações de performance não são necessárias sem scroll
     
     // ===== GEOLOCALIZAÇÃO =====
     
@@ -577,16 +652,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Adiciona classe de carregamento completo
         document.body.classList.add('loaded');
         
-        // Executa animações iniciais
-        handleScrollAnimations();
-        initCounters();
+        // Inicializa o sistema de navegação entre telas
+        initScreenNavigation();
+        
+        // Executa animações iniciais da tela atual
+        initScreenAnimations(currentScreen);
         
         // Inicializa funcionalidades específicas
         initGeolocation();
         initFoodRegistrationForm();
         
         // Log de inicialização (para debug)
-        console.log('Prato Justo - Página inicial carregada com sucesso!');
+        console.log('Prato Justo - Sistema de telas inicializado com sucesso!');
     }
     
     // Executa inicialização
